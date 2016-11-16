@@ -1,53 +1,53 @@
 package innlabs.gostore.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import innlabs.gostore.user.User;
 import innlabs.gostore.user.UserDAO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.websocket.server.PathParam;
 
 /**
- * Created by mathias on 13/11/16.
+ * Created by mathias on 15/11/16.
  */
-@Controller
+
+@RestController
+@RequestMapping("/users")
 public class UserController {
 
-    /**
-     * GET /create  --> Create a new innlabs.gostore.user and save it in the database.
-     */
-    @RequestMapping("/create")
-    @ResponseBody
-    public String create(String email, String name) {
-        String userId = "";
-        try {
-            User user = new User();
-            user.setUserName(name);
-            user.setMail(email);
-            userDao.save(user);
-            userId = String.valueOf(user.getUserId());
-        }
-        catch (Exception ex) {
-            return "Error creating the innlabs.gostore.user: " + ex.toString();
-        }
-        return "User succesfully created with id = " + userId;
-    }
 
-    /**
-     * GET /delete  --> Delete the innlabs.gostore.user having the passed id.
-     */
-    @RequestMapping("/delete")
+    @RequestMapping("/login/{userNameOrEmail}/{password}")
     @ResponseBody
-    public String delete(long id) {
+    public ResponseEntity<String> login(@PathParam(value="userNameOrEmail") String userNameOrEmail, @PathParam(value="password") String password) {
         try {
-            User user = new User();
-            user.setUserId(id);
-            userDao.delete(user);
+            User user = userDao.findByMail(userNameOrEmail);
+            if(user == null) {
+                user = userDao.findByUserName(userNameOrEmail);
+                if(user == null) {
+                    return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
+                } else {
+                    //we have to hash the received password to properly match the password in the database
+                    if(user.getPassword().equals(password)) {
+                        return new ResponseEntity<String>(HttpStatus.OK);
+                    } else {
+                        return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
+                    }
+                }
+            } else {
+                //we have to hash the received password to properly match the password in the database
+                if(user.getPassword().equals(password)) {
+                    return new ResponseEntity<String>(HttpStatus.OK);
+                } else {
+                    return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
+        } catch(Exception ex) {
+            return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        catch (Exception ex) {
-            return "Error deleting the innlabs.gostore.user:" + ex.toString();
-        }
-        return "User succesfully deleted!";
     }
 
     /**
@@ -59,7 +59,7 @@ public class UserController {
     public String getByEmail(String email) {
         String userId = "";
         try {
-            User user = userDao.findByEmail(email);
+            User user = userDao.findByMail(email);
             userId = String.valueOf(user.getUserId());
         }
         catch (Exception ex) {
@@ -68,27 +68,7 @@ public class UserController {
         return "The innlabs.gostore.user id is: " + userId;
     }
 
-    /**
-     * GET /update  --> Update the email and the name for the innlabs.gostore.user in the
-     * database having the passed id.
-     */
-    @RequestMapping("/update")
-    @ResponseBody
-    public String updateUser(long id, String email, String name) {
-        try {
-            User user = userDao.findOne(id);
-            user.setMail(email);
-            user.setUserName(name);
-            userDao.save(user);
-        }
-        catch (Exception ex) {
-            return "Error updating the innlabs.gostore.user: " + ex.toString();
-        }
-        return "User succesfully updated!";
-    }
-
-
     @Autowired
-    private UserDAO userDao;
+    UserDAO userDao;
 
 }
