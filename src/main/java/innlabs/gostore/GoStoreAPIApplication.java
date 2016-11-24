@@ -15,16 +15,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @ComponentScan
 public class GoStoreAPIApplication {
 
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurerAdapter() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**").allowedOrigins("http://localhost:8082");
-            }
-        };
-    }
-
     public static void main(String[] args) {
         SpringApplication.run(GoStoreAPIApplication.class, args);
     }
