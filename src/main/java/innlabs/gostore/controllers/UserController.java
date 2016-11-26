@@ -7,8 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.websocket.server.PathParam;
-
 /**
  * Created by mathias on 15/11/16.
  */
@@ -17,14 +15,17 @@ import javax.websocket.server.PathParam;
 @RequestMapping("/users")
 public class UserController {
 
+    @Autowired
+    UserDAO userDAO;
+
 
     @RequestMapping("/login/{userNameOrEmail}/{password}")
     @ResponseBody
     public ResponseEntity<String> login(@PathVariable("userNameOrEmail") String userNameOrEmail, @PathVariable(value = "password") String password) {
         try {
-            User user = !userDao.findByMail(userNameOrEmail).isEmpty() ? userDao.findByMail(userNameOrEmail).get(0) : null;
+            User user = !userDAO.findByMail(userNameOrEmail).isEmpty() ? userDAO.findByMail(userNameOrEmail).get(0) : null;
             if(user == null) {
-                user = !userDao.findByUserName(userNameOrEmail).isEmpty() ? userDao.findByUserName(userNameOrEmail).get(0) : null;
+                user = !userDAO.findByUserName(userNameOrEmail).isEmpty() ? userDAO.findByUserName(userNameOrEmail).get(0) : null;
                 if(user == null) {
                     return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
                 } else {
@@ -55,7 +56,7 @@ public class UserController {
     @ResponseBody
     public ResponseEntity<String> registerUser(@RequestBody User user) {
         try {
-            userDao.save(user);
+            userDAO.save(user);
         }
         catch (Exception ex) {
             return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -72,7 +73,7 @@ public class UserController {
     public String getByEmail(String email) {
         String userId = "";
         try {
-            User user = !userDao.findByMail(email).isEmpty() ? userDao.findByMail(email).get(0) : null;
+            User user = !userDAO.findByMail(email).isEmpty() ? userDAO.findByMail(email).get(0) : null;
             userId = String.valueOf(user.getUserId());
         }
         catch (Exception ex) {
@@ -80,9 +81,4 @@ public class UserController {
         }
         return "The innlabs.gostore.user id is: " + userId;
     }
-
-
-    @Autowired
-    UserDAO userDao;
-
 }
