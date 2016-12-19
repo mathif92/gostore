@@ -18,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by mathias on 24/11/16.
@@ -56,7 +58,8 @@ public class ProductController {
             Gson gson = new Gson();
             return new ResponseEntity<String>(gson.toJson(productList), HttpStatus.OK);
         } catch(Exception ex) {
-
+            ex.printStackTrace();
+            Logger.getLogger("ProductController").log(Level.SEVERE, ex.getMessage());
             return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
